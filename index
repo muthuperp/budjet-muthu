@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>தினசரி செலவு டாஷ்போர்ட்</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; color: #222; }
+    header { background: #01696f; color: white; padding: 16px 20px; font-size: 22px; font-weight: bold; }
+    .container { max-width: 1180px; margin: auto; padding: 18px; }
+    .section { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .hidden { display: none; }
+
+    .topbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .nav-btn {
+      background: white;
+      color: #01696f;
+      border: 1px solid #cfe1e2;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .nav-btn.active {
+      background: #01696f;
+      color: white;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    input, select, textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      flex: 1;
+      min-width: 160px;
+      width: 100%;
+    }
+
+    button {
+      background: #01696f;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #014f53;
+    }
+
+    .secondary { background: #666; }
+    .secondary:hover { background: #555; }
+    .danger { background: #c62828; }
+    .danger:hover { background: #a91f1f; }
+    .warning { background: #ef6c00; }
+    .warning:hover { background: #cf5d00; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e2e2e2;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .card .value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .green { color: #2e7d32; }
+    .red { color: #c62828; }
+    .blue { color: #1565c0; }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .chart-box {
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .category-btn {
+      background: #f7fbfb;
+      color: #222;
+      border: 1px solid #d7e5e6;
+      border-radius: 14px;
+      padding: 14px 10px;
+      text-align: center;
+      font-weight: 600;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .category-btn.active {
+      background: #01696f;
+      color: #fff;
+      border-color: #01696f;
+    }
+
+    .category-icon {
+      width: 30px;
+      height: 30px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+
+    .category-label {
+      font-size: 13px;
+      line-height: 1.25;
+      text-align: center;
+      word-break: break-word;
+    }
+
+    .selected-box {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #eef7f7;
+      color: #01696f;
+      font-weight: 600;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      border: 1px solid #e0e0e0;
+      padding: 10px;
+      text-align: left;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #01696f;
+      color: #fff;
+    }
+
+    .recent-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .recent-item {
+      border: 1px solid #e4e4e4;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fafafa;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    .alert-box {
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid #e0e0e0;
+      background: #fff8f0;
+    }
+
+    .alert-danger {
+      border-color: #f3b0b0;
+      background: #fff1f1;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      header { font-size: 18px; }
+      .container { padding: 12px; }
+      .section { padding: 14px; }
+      .category-grid { grid-template-columns: repeat(3, 1fr); }
+      .category-btn { min-height: 96px; padding: 12px 8px; }
+      .category-icon { font-size: 22px; }
+      .category-label { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header>தினசரி செலவு டாஷ்போர்ட்</header>
+
+  <div class="container" id="appContainer">
+    <div class="topbar">
+      <button class="nav-btn active" onclick="showTab('homeTab', this)">Home</button>
+      <button class="nav-btn" onclick="showTab('addTab', this)">Add Entry</button>
+      <button class="nav-btn" onclick="showTab('transactionsTab', this)">Transactions</button>
+      <button class="nav-btn" onclick="showTab('reportsTab', this)">Reports</button>
+      <button class="nav-btn" onclick="showTab('settingsTab', this)">Settings</button>
+      <button onclick="runSetup()">Setup Google Sheet</button>
+    </div>
+
+    <div id="homeTab" class="tab-section">
+      <div class="section">
+        <h2>Home Dashboard</h2>
+        <div class="cards">
+          <div class="card"><h3>Today Income</h3><div class="value green" id="homeTodayIncome">₹0</div></div>
+          <div class="card"><h3>Today Expense</h3><div class="value red" id="homeTodayExpense">₹0</div></div>
+          <div class="card"><h3>Today Savings</h3><div class="value blue" id="homeTodaySavings">₹0</div></div>
+          <div class="card"><h3>Month Income</h3><div class="value green" id="homeMonthIncome">₹0</div></div>
+          <div class="card"><h3>Month Expense</h3><div class="value red" id="homeMonthExpense">₹0</div></div>
+          <div class="card"><h3>Month Savings</h3><div class="value blue" id="homeMonthSavings">₹0</div></div>
+          <div class="card"><h3>Total Transactions</h3><div class="value" id="homeTotalTransactions">0</div></div>
+          <div class="card"><h3>Top Category</h3><div class="value" id="homeTopCategory">-</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Budget Alerts</h2>
+        <div id="budgetAlertsContainer"></div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="section">
+          <h2>Dashboard Charts</h2>
+          <div class="chart-grid">
+            <div class="chart-box">
+              <h3>Income vs Expense</h3>
+              <canvas id="homeIncomeExpenseChart"></canvas>
+            </div>
+            <div class="chart-box">
+              <h3>Category Expense</h3>
+              <canvas id="homeCategoryChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Recent Transactions</h2>
+          <div id="recentTransactions" class="recent-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="addTab" class="tab-section hidden">
+      <div class="section">
+        <h2 id="formTitle">புதிய பதிவு</h2>
+        <input type="hidden" id="editId">
+
+        <div class="form-row">
+          <select id="type" onchange="populateCategories(); clearCategorySelection();">
+            <option value="Income">வருமானம்</option>
+            <option value="Expense" selected>செலவு</option>
+          </select>
+          <input type="date" id="date">
+        </div>
+
+        <div id="categoryGrid" class="category-grid"></div>
+        <div class="selected-box">தேர்ந்தெடுத்த வகை: <span id="selectedCategoryText">இல்லை</span></div>
+        <input type="hidden" id="category">
+
+        <div class="form-row" style="margin-top:15px;">
+          <input type="number" id="amount" placeholder="தொகை">
+          <input type="text" id="description" placeholder="விளக்கம்">
+        </div>
+
+        <div class="form-row">
+          <select id="paymentMethod">
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="Card">Card</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Other">Other</option>
+          </select>
+          <textarea id="notes" placeholder="குறிப்புகள்"></textarea>
+        </div>
+
+        <div class="form-row">
+          <button id="saveBtn" onclick="saveTransaction()">Save</button>
+          <button id="updateBtn" class="warning hidden" onclick="updateCurrentTransaction()">Update</button>
+          <button id="cancelBtn" class="secondary hidden" onclick="cancelEdit()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="transactionsTab" class="tab-section hidden">
+      <div class="section">
+        <h2>Transaction List</h2>
+
+        <div class="toolbar">
+          <input type="text" id="searchText" placeholder="Search">
+          <input type="date" id="filterFrom">
+          <input type="date" id="filterTo">
+          <select id="filterType">
+            <option value="">All Type</option>
+            <option value="Income">Income</option>
+            <option value="Expense">Expense</option>
+          </select>
+          <select id="filterCategory">
+            <option value="">All Category</option>
+          </select>
+          <button onclick="applyFilters()">Apply</button>
+          <button class="secondary" onclick="clearFilters()">Clear</button>
+          <button onclick="exportCSV()">Export CSV</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th><th>Payment</th><th>Notes</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="transactionTableBody">
+              <tr><td colspan="9">No data</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="reportsTab" class="tab-section hidden">
+      <div class="section">
+        <h2>Reports</h2>
+        <div class="form-row">
+          <select id="reportType" onchange="toggleReportInputs()">
+            <option value="daily">Daily</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+          <input type="date" id="dailyInput">
+          <input type="month" id="monthlyInput" style="display:none;">
+          <input type="number" id="yearlyInput" placeholder="வருடம்" style="display:none;">
+          <button onclick="loadReport()">Show Report</button>
+        </div>
+
+        <div class="cards">
+          <div class="card"><h3>Total Income</h3><div class="value green" id="totalIncome">₹0</div></div>
+          <div class="card"><h3>Total Expense</h3><div class="value red" id="totalExpense">₹0</div></div>
+          <div class="card"><h3>Net Savings</h3><div class="value blue" id="totalSavings">₹0</div></div>
+          <div class="card"><h3>Total Entries</h3><div class="value" id="totalEntries">0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="settingsTab" class="tab-section hidden">
+      <div class="section">
+        <h2>Budget Settings</h2>
+        <div id="budgetSettingsList"></div>
+        <div class="form-row">
+          <button onclick="saveBudgetSettings()">Save Budgets</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Backup / Restore</h2>
+        <div class="form-row">
+          <button onclick="createBackupNow()">Create Backup</button>
+          <select id="backupListSelect"></select>
+          <button class="warning" onclick="restoreSelectedBackup()">Restore Selected Backup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let categoriesData = { income: [], expense: [] };
+    let allTransactions = [];
+    let filteredTransactions = [];
+    let homeIncomeChart = null;
+    let homeCategoryChart = null;
+
+    const iconMap = {
+      "சம்பளம்": "💼",
+      "வியாபாரம்": "👜",
+      "ஃப்ரீலான்ஸ்": "💻",
+      "முதலீட்டு வருமானம்": "₹",
+      "வாடகை வருமானம்": "🏠",
+      "போனஸ்": "🎁",
+      "பரிசு வருமானம்": "🎁",
+      "மற்றவை": "•",
+      "அரிசி / மளிகை": "🛒",
+      "பால்": "🥛",
+      "காய்கறி": "🥕",
+      "பழங்கள்": "🍎",
+      "கல்வி கட்டணம்": "🎓",
+      "பயணம்": "🚌",
+      "எரிபொருள்": "⛽",
+      "மின்சாரம்": "⚡",
+      "தண்ணீர் கட்டணம்": "💧",
+      "மொபைல் / இன்டர்நெட்": "📱",
+      "வீடு வாடகை": "🏢",
+      "மருத்துவம்": "➕",
+      "பொழுதுபோக்கு": "🎬",
+      "உடை": "👕",
+      "வீட்டு செலவு": "🛋️",
+      "தனிநபர் பராமரிப்பு": "❤️",
+      "EMI / கடன்": "💵",
+      "தானம் / கொடை": "🎁"
+    };
+
+    function getIconSvg(categoryName) {
+      return '<div class="category-icon">' + (iconMap[categoryName] || "•") + '</div>';
+    }
+
+    function showTab(tabId, btn) {
+      document.querySelectorAll('.tab-section').forEach(s => s.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function runSetup() {
+      google.script.run.withSuccessHandler(function(res) {
+        alert(res.message || "Setup done");
+        initLoad();
+      }).api("setup");
+    }
+
+    function initLoad() {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, "0");
+      const d = String(today.getDate()).padStart(2, "0");
+
+      document.getElementById("date").value = y + "-" + m + "-" + d;
+      document.getElementById("dailyInput").value = y + "-" + m + "-" + d;
+      document.getElementById("monthlyInput").value = y + "-" + m;
+      document.getElementById("yearlyInput").value = y;
+
+      loadCategories();
+      loadTransactions();
+      loadDashboard();
+      loadBudgets();
+      loadBudgetAlerts();
+      loadBackupList();
+    }
+
+    function loadCategories() {
+      google.script.run.withSuccessHandler(function(res) {
+        categoriesData = res;
+        populateCategories();
+        populateFilterCategory();
+      }).api("categories");
+    }
+
+    function populateCategories() {
+      const type = document.getElementById("type").value;
+      const grid = document.getElementById("categoryGrid");
+      grid.innerHTML = "";
+      const list = type === "Income" ? categoriesData.income : categoriesData.expense;
+
+      list.forEach(function(item) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "category-btn";
+        btn.innerHTML = getIconSvg(item) + '<div class="category-label">' + item + '</div>';
+        btn.onclick = function() { selectCategory(item, btn); };
+        grid.appendChild(btn);
+      });
+    }
+
+    function populateFilterCategory() {
+      const sel = document.getElementById("filterCategory");
+      sel.innerHTML = '<option value="">All Category</option>';
+      [...(categoriesData.income || []), ...(categoriesData.expense || [])].forEach(function(cat) {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat;
+        sel.appendChild(opt);
+      });
+    }
+
+    function selectCategory(categoryName, element) {
+      document.getElementById("category").value = categoryName;
+      document.getElementById("selectedCategoryText").textContent = categoryName;
+      document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
+      element.classList.add("active");
+    }
+
+    function clearCategorySelection() {
+      document.getElementById("category").value = "";
+      document.getElementById("selectedCategoryText").textContent = "இல்லை";
+      document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
+    }
+
+    function resetForm() {
+      document.getElementById("editId").value = "";
+      document.getElementById("description").value = "";
+      document.getElementById("amount").value = "";
+      document.getElementById("notes").value = "";
+      document.getElementById("type").value = "Expense";
+      clearCategorySelection();
+      populateCategories();
+      document.getElementById("formTitle").textContent = "புதிய பதிவு";
+      document.getElementById("saveBtn").classList.remove("hidden");
+      document.getElementById("updateBtn").classList.add("hidden");
+      document.getElementById("cancelBtn").classList.add("hidden");
+    }
+
+    function saveTransaction() {
+      const data = {
+        type: document.getElementById("type").value,
+        date: document.getElementById("date").value,
+        category: document.getElementById("category").value,
+        description: document.getElementById("description").value,
+        amount: document.getElementById("amount").value,
+        paymentMethod: document.getElementById("paymentMethod").value,
+        notes: document.getElementById("notes").value
+      };
+
+      if (!data.date || !data.category || !data.description || !data.amount) {
+        return alert("தேவையான விவரங்களை நிரப்பவும்.");
+      }
+
+      google.script.run.withSuccessHandler(function(res) {
+        if (res.success) {
+          alert("பதிவு சேமிக்கப்பட்டது");
+          resetForm();
+          loadTransactions();
+          loadDashboard();
+          loadBudgetAlerts();
+        } else {
+          alert(res.message);
+        }
+      }).api("add", data);
+    }
+
+    function editTransaction(id) {
+      google.script.run.withSuccessHandler(function(res) {
+        if (!res.success) return alert(res.message);
+
+        const d = res.data;
+        document.getElementById("editId").value = d.id;
+        document.getElementById("date").value = d.date;
+        document.getElementById("type").value = d.type;
+        document.getElementById("description").value = d.description;
+        document.getElementById("amount").value = d.amount;
+        document.getElementById("paymentMethod").value = d.paymentMethod || "Cash";
+        document.getElementById("notes").value = d.notes || "";
+
+        populateCategories();
+
+        setTimeout(function() {
+          document.querySelectorAll(".category-btn").forEach(function(btn) {
+            if (btn.textContent.trim() === d.category) selectCategory(d.category, btn);
+          });
+        }, 50);
+
+        document.getElementById("formTitle").textContent = "பதிவை திருத்தவும்";
+        document.getElementById("saveBtn").classList.add("hidden");
+        document.getElementById("updateBtn").classList.remove("hidden");
+        document.getElementById("cancelBtn").classList.remove("hidden");
+      }).api("getById", { id: id });
+    }
+
+    function updateCurrentTransaction() {
+      const data = {
+        id: document.getElementById("editId").value,
+        type: document.getElementById("type").value,
+        date: document.getElementById("date").value,
+        category: document.getElementById("category").value,
+        description: document.getElementById("description").value,
+        amount: document.getElementById("amount").value,
+        paymentMethod: document.getElementById("paymentMethod").value,
+        notes: document.getElementById("notes").value
+      };
+
+      if (!data.id || !data.date || !data.category || !data.description || !data.amount) {
+        return alert("தேவையான விவரங்களை நிரப்பவும்.");
+      }
+
+      google.script.run.withSuccessHandler(function(res) {
+        if (res.success) {
+          alert("பதிவு update செய்யப்பட்டது");
+          resetForm();
+          loadTransactions();
+          loadDashboard();
+          loadBudgetAlerts();
+        } else {
+          alert(res.message);
+        }
+      }).api("update", data);
+    }
+
+    function cancelEdit() {
+      resetForm();
+    }
+
+    function deleteTransaction(id) {
+      if (!confirm("இந்த பதிவை delete செய்யவா?")) return;
+
+      google.script.run.withSuccessHandler(function(res) {
+        if (res.success) {
+          alert("பதிவு delete செய்யப்பட்டது");
+          loadTransactions();
+          loadDashboard();
+          loadBudgetAlerts();
+        } else {
+          alert(res.message);
+        }
+      }).api("delete", { id: id });
+    }
+
+    function loadTransactions() {
+      google.script.run.withSuccessHandler(function(res) {
+        if (!res.success) return;
+        allTransactions = res.data || [];
+        filteredTransactions = [...allTransactions];
+        renderTransactionTable(filteredTransactions);
+      }).api("transactions");
+    }
+
+    function renderTransactionTable(data) {
+      const tbody = document.getElementById("transactionTableBody");
+      tbody.innerHTML = "";
+
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9">No data</td></tr>';
+        return;
+      }
+
+      data.forEach(function(item) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.id}</td>
+          <td>${item.date}</td>
+          <td>${item.type}</td>
+          <td>${item.category}</td>
+          <td>${item.description || ""}</td>
+          <td>₹${Number(item.amount).toLocaleString("en-IN")}</td>
+          <td>${item.paymentMethod || ""}</td>
+          <td>${item.notes || ""}</td>
+          <td>
+            <button class="warning" onclick="editTransaction('${item.id}')">Edit</button>
+            <button class="danger" onclick="deleteTransaction('${item.id}')">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function applyFilters() {
+      const searchText = document.getElementById("searchText").value.toLowerCase().trim();
+      const from = document.getElementById("filterFrom").value;
+      const to = document.getElementById("filterTo").value;
+      const type = document.getElementById("filterType").value;
+      const category = document.getElementById("filterCategory").value;
+
+      filteredTransactions = allTransactions.filter(function(item) {
+        const matchSearch = !searchText ||
+          (item.description || "").toLowerCase().includes(searchText) ||
+          (item.category || "").toLowerCase().includes(searchText) ||
+          (item.notes || "").toLowerCase().includes(searchText);
+
+        const matchFrom = !from || item.date >= from;
+        const matchTo = !to || item.date <= to;
+        const matchType = !type || item.type === type;
+        const matchCategory = !category || item.category === category;
+
+        return matchSearch && matchFrom && matchTo && matchType && matchCategory;
+      });
+
+      renderTransactionTable(filteredTransactions);
+    }
+
+    function clearFilters() {
+      document.getElementById("searchText").value = "";
+      document.getElementById("filterFrom").value = "";
+      document.getElementById("filterTo").value = "";
+      document.getElementById("filterType").value = "";
+      document.getElementById("filterCategory").value = "";
+      filteredTransactions = [...allTransactions];
+      renderTransactionTable(filteredTransactions);
+    }
+
+    function exportCSV() {
+      const rows = [['ID','Date','Type','Category','Description','Amount','Payment Method','Notes']];
+      filteredTransactions.forEach(function(item) {
+        rows.push([
+          item.id, item.date, item.type, item.category,
+          item.description || '', item.amount, item.paymentMethod || '', item.notes || ''
+        ]);
+      });
+
+      const csv = rows.map(function(r) {
+        return r.map(function(v) {
+          return '"' + String(v).replace(/"/g, '""') + '"';
+        }).join(',');
+      }).join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'expense-report.csv';
+      a.click();
+    }
+
+    function toggleReportInputs() {
+      const type = document.getElementById("reportType").value;
+      document.getElementById("dailyInput").style.display = type === "daily" ? "block" : "none";
+      document.getElementById("monthlyInput").style.display = type === "monthly" ? "block" : "none";
+      document.getElementById("yearlyInput").style.display = type === "yearly" ? "block" : "none";
+    }
+
+    function loadReport() {
+      const type = document.getElementById("reportType").value;
+      let value = "";
+      if (type === "daily") value = document.getElementById("dailyInput").value;
+      if (type === "monthly") value = document.getElementById("monthlyInput").value;
+      if (type === "yearly") value = document.getElementById("yearlyInput").value;
+
+      if (!value) return alert("தேதி / மாதம் / வருடம் தேர்வு செய்யவும்.");
+
+      google.script.run.withSuccessHandler(function(res) {
+        if (!res.success) return;
+        document.getElementById("totalIncome").textContent = "₹" + Number(res.totalIncome).toLocaleString("en-IN");
+        document.getElementById("totalExpense").textContent = "₹" + Number(res.totalExpense).toLocaleString("en-IN");
+        document.getElementById("totalSavings").textContent = "₹" + Number(res.savings).toLocaleString("en-IN");
+        document.getElementById("totalEntries").textContent = res.totalEntries;
+      }).api("report", { type: type, value: value });
+    }
+
+    function loadDashboard() {
+      google.script.run.withSuccessHandler(function(res) {
+        if (!res.success) return;
+        const s = res.summary;
+
+        document.getElementById("homeTodayIncome").textContent = "₹" + Number(s.todayIncome).toLocaleString("en-IN");
+        document.getElementById("homeTodayExpense").textContent = "₹" + Number(s.todayExpense).toLocaleString("en-IN");
+        document.getElementById("homeTodaySavings").textContent = "₹" + Number(s.todaySavings).toLocaleString("en-IN");
+        document.getElementById("homeMonthIncome").textContent = "₹" + Number(s.monthIncome).toLocaleString("en-IN");
+        document.getElementById("homeMonthExpense").textContent = "₹" + Number(s.monthExpense).toLocaleString("en-IN");
+        document.getElementById("homeMonthSavings").textContent = "₹" + Number(s.monthSavings).toLocaleString("en-IN");
+        document.getElementById("homeTotalTransactions").textContent = s.totalTransactions;
+        document.getElementById("homeTopCategory").textContent = s.topCategory;
+
+        const recentDiv = document.getElementById("recentTransactions");
+        recentDiv.innerHTML = "";
+
+        if (!s.recent || s.recent.length === 0) {
+          recentDiv.innerHTML = "<div class='recent-item'>No recent transactions</div>";
+        } else {
+          s.recent.forEach(function(r) {
+            const div = document.createElement("div");
+            div.className = "recent-item";
+            div.innerHTML = `<strong>${r.category}</strong><br>${r.date} • ${r.description || "-"}<br>₹${Number(r.amount).toLocaleString("en-IN")} (${r.type})`;
+            recentDiv.appendChild(div);
+          });
+        }
+
+        renderHomeCharts(s);
+      }).api("dashboard");
+    }
+
+    function renderHomeCharts(summary) {
+      const incomeCanvas = document.getElementById("homeIncomeExpenseChart");
+      const categoryCanvas = document.getElementById("homeCategoryChart");
+      if (!incomeCanvas || !categoryCanvas) return;
+
+      const incomeCtx = incomeCanvas.getContext("2d");
+      const catCtx = categoryCanvas.getContext("2d");
+
+      if (homeIncomeChart) homeIncomeChart.destroy();
+      if (homeCategoryChart) homeCategoryChart.destroy();
+
+      homeIncomeChart = new Chart(incomeCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Income', 'Expense'],
+          datasets: [{
+            data: [summary.monthIncome, summary.monthExpense],
+            backgroundColor: ['#437a22', '#c62828']
+          }]
+        },
+        options: { responsive: true }
+      });
+
+      const categoryMap = {};
+      (summary.recent || []).forEach(function(r) {
+        if (r.type === "Expense") {
+          categoryMap[r.category] = (categoryMap[r.category] || 0) + r.amount;
+        }
+      });
+
+      homeCategoryChart = new Chart(catCtx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(categoryMap).length ? Object.keys(categoryMap) : ['No Data'],
+          datasets: [{
+            data: Object.values(categoryMap).length ? Object.values(categoryMap) : [0],
+            backgroundColor: '#01696f'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function loadBudgets() {
+      google.script.run.withSuccessHandler(function(res) {
+        if (!res.success) return;
+        const wrap = document.getElementById("budgetSettingsList");
+        wrap.innerHTML = "";
+
+        res.data.forEach(function(item, idx) {
+          const row = document.createElement("div");
+          row.className = "form-row";
+          row.innerHTML = `
+            <input type="text" value="${item.category}" readonly>
+            <input type="number" id="budget_${idx}" value="${item.budget}">
+            <input type="hidden" id="budget_cat_${idx}" value="${item.category}">
+          `;
+          wrap.appendChild(row);
+        });
+      }).api("getBudgets");
+    }
+
+    function saveBudgetSettings() {
+      const rows = [];
+      const count = document.querySelectorAll('[id^="budget_cat_"]').length;
+
+      for (let i = 0; i < count; i++) {
+        rows.push({
+          category: document.getElementById("budget_cat_" + i).value,
+          budget: document.getElementById("budget_" + i).value
+        });
+      }
+
+      google.script.run.withSuccessHandler(function(res) {
+        alert(res.message);
+        loadBudgetAlerts();
+      }).api("saveBudgets", { items: rows });
+    }
+
+    function loadBudgetAlerts() {
+      google.script.run.withSuccessHandler(function(res) {
+        if (!res.success) return;
+        const wrap = document.getElementById("budgetAlertsContainer");
+        wrap.innerHTML = "";
+
+        const active = res.data.filter(function(r) { return r.budget > 0; });
+
+        if (active.length === 0) {
+          wrap.innerHTML = "<div class='alert-box'>No budgets set.</div>";
+          return;
+        }
+
+        active.forEach(function(a) {
+          const div = document.createElement("div");
+          div.className = "alert-box" + (a.alert ? " alert-danger" : "");
+          div.innerHTML = `<strong>${a.category}</strong><br>Budget: ₹${a.budget.toLocaleString("en-IN")} | Used: ₹${a.used.toLocaleString("en-IN")} | Balance: ₹${a.balance.toLocaleString("en-IN")} | ${a.percent}% used`;
+          wrap.appendChild(div);
+        });
+      }).api("budgetAlerts");
+    }
+
+    function createBackupNow() {
+      google.script.run.withSuccessHandler(function(res) {
+        alert(res.message);
+        loadBackupList();
+      }).api("createBackup");
+    }
+
+    function loadBackupList() {
+      google.script.run.withSuccessHandler(function(res) {
+        const sel = document.getElementById("backupListSelect");
+        sel.innerHTML = "";
+
+        if (!res.success || !res.data || res.data.length === 0) {
+          sel.innerHTML = '<option value="">No backups</option>';
+          return;
+        }
+
+        res.data.forEach(function(b) {
+          const opt = document.createElement("option");
+          opt.value = b;
+          opt.textContent = b;
+          sel.appendChild(opt);
+        });
+      }).api("backupList");
+    }
+
+    function restoreSelectedBackup() {
+      const backupTime = document.getElementById("backupListSelect").value;
+      if (!backupTime) return alert("Select backup");
+      if (!confirm("Restore selected backup? Current data will be replaced.")) return;
+
+      google.script.run.withSuccessHandler(function(res) {
+        alert(res.message);
+        initLoad();
+      }).api("restoreBackup", { backupTime: backupTime });
+    }
+
+    window.onload = function() {
+      initLoad();
+    };
+  </script>
+</body>
+</html>
+
